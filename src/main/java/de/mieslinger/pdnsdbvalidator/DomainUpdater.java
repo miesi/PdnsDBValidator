@@ -66,22 +66,15 @@ public class DomainUpdater {
         private Connection cn = null;
 
         private PreparedStatement getSOARecord = null;
-        //private PreparedStatement updSOARecord = null;
-        //private PreparedStatement insSOARecord = null;
         private PreparedStatement getNameFromDomains = null;
-
-        private PreparedStatement getTXTRecords = null;
-        //private PreparedStatement updTXTRecord = null;
-        //private PreparedStatement delTXTRecord = null;
-
-        private PreparedStatement getAAAARecords = null;
-
-        //private PreparedStatement delJabberRecords = null;
-        //private PreparedStatement getRecords = null;
+        private PreparedStatement getRecords = null;
         private PreparedStatement insBroken = null;
 
+        // jabber fix
+        private PreparedStatement delJabberRecords = null;
+
         private int updatedDomains = 0;
-        private final int batchSize = 500;
+        private final int batchSize = 1500;
 
         private ShortDomainUpdaterWorker() {
         }
@@ -93,31 +86,18 @@ public class DomainUpdater {
             this.logFileQ = logFileQ;
             this.criticalLogFileQ = criticalLogFileQ;
 
-            // prepare SQL
             Class.forName(DataBase.getJdbcClass());
             cn = DriverManager.getConnection(DataBase.getJdbcUrl(), DataBase.getDbUser(), DataBase.getDbPass());
             cn.setAutoCommit(false);
-            // SOA fix statements
-            // check SOA exists and is valid
+
             getNameFromDomains = cn.prepareStatement("select name from domains where id=?");
 
             getSOARecord = cn.prepareStatement("select name, content from records where domain_id=? and type='SOA'");
-            //updSOARecord = cn.prepareStatement("update records set content=?, ttl = 86400 where domain_id=? and type='SOA'");
-            //insSOARecord = cn.prepareStatement("insert into records(domain_id, name, type, content, ttl, rev_name) values (?,?,?,?,?,reverse(?))");
 
-            // TXT Records
-            // select, if contains '"' transform to dnsjava object, log deletion
-            getTXTRecords = cn.prepareStatement("select id, name, content from records where domain_id=? and type='TXT'");
-            // only list TXT records, no auto fix
-            //updTXTRecord = cn.prepareStatement("update records set content = ? where id = ?");
-            //delTXTRecord = cn.prepareStatement("delete from records where id=?");
-            // AAAA Records
-            // select, check whether the string in content is a valid IPv6 address
-            getAAAARecords = cn.prepareStatement("select id, name, content from records where domain_id=? and type='AAAA'");
-            //delAAAARecord = cn.prepareStatement("delete from records where id=?");
-            // jabber fix
-            //delJabberRecords = cn.prepareStatement("delete from records where domain_id=? and type = 'SRV' and content = ?");
-
+            getRecords = cn.prepareStatement("select r.id, r.name, r.ttl, r.type, r.prio, r.content "
+                    + "from records r "
+                    + "where r.domain_id=? ");
+            delJabberRecords = cn.prepareStatement("delete from records where domain_id=? and type = 'SRV' and content = ?");
             insBroken = cn.prepareStatement("insert into domainmetadata(domain_id, kind, content) values (?, ?, ?)");
 
         }
@@ -130,15 +110,25 @@ public class DomainUpdater {
                 if (domainId != null) {
                     updatedDomains++;
                     try {
-                        // FIX or insert SOA if broken or missing
+
+                        // Check SOA
+                        getNameFromDomains.setLong(1, domainId);
+                        String domainName = "";
+                        ResultSet rsD = getNameFromDomains.executeQuery();
+                        if (rsD.first()) {
+                            domainName = rsD.getString(1);
+                        }
+                        rsD.close();
+
                         getSOARecord.setLong(1, domainId);
                         rs = getSOARecord.executeQuery();
                         if (rs.next()) {
                             do {
                                 zoneName = rs.getString(1);
-                                if (zoneName.equals("")) {
+                                if (!zoneName.equals(domainName)) {
                                     setDomainIdBroken(insBroken, domainId, "SOA name does not match domainstable name");
                                 }
+
                                 String soa = rs.getString(2);
                                 String[] soaFields = soa.split(" ");
 
@@ -152,53 +142,29 @@ public class DomainUpdater {
                         } catch (SQLException e) {
                         }
 
-                        // TXT
-                        // list broken TXT records
-                        getTXTRecords.setLong(1, domainId);
-                        rs = getTXTRecords.executeQuery();
-                        while (rs.next()) {
-                            long rrId = rs.getLong(1);
-                            Name rrName = new Name(rs.getString(2) + ".");
-                            String rrContent = rs.getString(3);
-                            //logFileQ.add("domain_id: " + domainId + " zone: " + zoneName + "rrName: " + rrName.toString() + " type TXT rrContent: " + rrContent);
-                            TXTRecord tr = null;
-                            try {
+                        // jabber
+                        // das das jemals funktioniert hat. Da hätte NIE ein '.' am Ende sein dürfen.
+                        delJabberRecords.setLong(1, domainId);
+                        delJabberRecords.setString(2, "0 5269 gmx.net.");
+                        int i = delJabberRecords.executeUpdate();
+                        logFileQ.add("domain_id: " + domainId + " " + zoneName + " deleted " + i + " jabber 5269 records record");
 
-                                tr = new TXTRecord(rrName, DClass.IN, 3600, rrContent);
+                        delJabberRecords.setLong(1, domainId);
+                        delJabberRecords.setString(2, "0 5222 gmx.net.");
+                        int j = delJabberRecords.executeUpdate();
+                        logFileQ.add("domain_id: " + domainId + " " + zoneName + " deleted " + j + " jabber 5222 records record");
 
-                            } catch (Exception e) {
-                                setDomainIdBroken(insBroken, domainId, "TXT inavlid");
-                                continue;
+                        // Check every Record in Zone
+                        getRecords.setLong(1, domainId);
+                        ResultSet rsZ = getRecords.executeQuery();
+
+                        while (rsZ.next()) {
+                            ResourceRecord r = new ResourceRecord(rsZ.getString(2), rsZ.getLong(3), rsZ.getString(4), rsZ.getInt(5), rsZ.getString(6));
+                            if (r.getRc() != 0) {
+                                setDomainIdBroken(insBroken, domainId, r.getMessage());
                             }
                         }
-                        try {
-                            rs.close();
-                        } catch (SQLException e) {
-                        } // TXT
-
-                        // AAAA
-                        // identify broken AAAA reords
-                        getAAAARecords.setLong(1, domainId);
-                        rs = getAAAARecords.executeQuery();
-                        while (rs.next()) {
-                            long rrId = rs.getLong(1);
-                            Name rrName = new Name(rs.getString(2) + ".");
-                            String rrContent = rs.getString(3);
-                            //logFileQ.add("domain_id: " + domainId + " zone: " + zoneName + "rrName: " + rrName.toString() + " type TXT rrContent: " + rrContent);
-                            AAAARecord aAAAr = null;
-                            try {
-                                InetAddress ip6 = InetAddress.getByName(rrContent);
-                                aAAAr = new AAAARecord(rrName, DClass.IN, 3600, ip6);
-                                aAAAr.toString();
-                            } catch (Exception e) {
-                                setDomainIdBroken(insBroken, domainId, "AAAA invalid");
-                                continue;
-                            }
-                        }
-                        try {
-                            rs.close();
-                        } catch (SQLException e) {
-                        } // AAAA
+                        rsZ.close();
 
                         // Do the commit
                         if (updatedDomains > batchSize) {
