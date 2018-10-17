@@ -143,8 +143,24 @@ public class ResourceRecord {
                             r = new TXTRecord(txtn, DClass.IN, ttl, txtStrings);
                         }
                     } else {
-                        if (content.length() > 256) {
-                            // TODO: implement autochopping
+                        if (content.length() > 255) {
+                            List<String> txtStrings = new LinkedList<>();
+                            int len = content.length();
+                            int start = 0;
+                            while (len > 0) {
+
+                                String part = null;
+                                if (len > 255) {
+                                    part = content.substring(start, start + 255);
+                                } else {
+                                    part = content.substring(start, start + len);
+                                }
+
+                                txtStrings.add(part);
+                                len = len - 255;
+                                start = start + 255;
+                            }
+                            r = new TXTRecord(txtn, DClass.IN, ttl, txtStrings);
                         } else {
                             r = new TXTRecord(txtn, DClass.IN, ttl, content);
                         }
