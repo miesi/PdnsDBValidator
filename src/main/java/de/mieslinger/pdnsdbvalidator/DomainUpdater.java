@@ -84,10 +84,14 @@ public class DomainUpdater {
             getNameFromDomains = cn.prepareStatement("select name from domains where id=?");
 
             getSOARecord = cn.prepareStatement("select name, content from records where domain_id=? and type='SOA'");
-
+            
+            // check only zone apex for broken record 
+            // to limit effort
             getRecords = cn.prepareStatement("select r.id, r.name, r.ttl, r.type, r.prio, r.content "
                     + "from records r "
-                    + "where r.domain_id=? ");
+                    + "where r.domain_id=? "
+                    + "  and r.name=? "); 
+            
             delJabberRecords = cn.prepareStatement("delete from records where domain_id=? and type = 'SRV' and content = ?");
             insBroken = cn.prepareStatement("insert into domainmetadata(domain_id, kind, content) values (?, ?, ?)");
 
@@ -138,14 +142,16 @@ public class DomainUpdater {
                         delJabberRecords.setLong(1, domainId);
                         delJabberRecords.setString(2, "0 5269 gmx.net.");
                         int i = delJabberRecords.executeUpdate();
-                        logFileQ.add("domain_id: " + domainId + " " + zoneName + " deleted " + i + " jabber 5269 records record");
+                        // just delete, do not log
+                        //logFileQ.add("domain_id: " + domainId + " " + zoneName + " deleted " + i + " jabber 5269 records record");
 
                         delJabberRecords.setLong(1, domainId);
                         delJabberRecords.setString(2, "0 5222 gmx.net.");
                         int j = delJabberRecords.executeUpdate();
-                        logFileQ.add("domain_id: " + domainId + " " + zoneName + " deleted " + j + " jabber 5222 records record");
+                        // just delete, do not log
+                        //logFileQ.add("domain_id: " + domainId + " " + zoneName + " deleted " + j + " jabber 5222 records record");
 
-                        // Check every Record in Zone
+                        // Check only Records at Zone apex
                         getRecords.setLong(1, domainId);
                         ResultSet rsZ = getRecords.executeQuery();
 
