@@ -27,7 +27,7 @@ public class App {
             Thread ctlfw = new Thread(criticalLogfileWriter);
             ctlfw.start();
 
-            DomainUpdater domainUpdater = new DomainUpdater(domainIdQ, logFileQ, criticalLogFileQ, 5);
+            DomainUpdater domainUpdater = new DomainUpdater(domainIdQ, logFileQ, criticalLogFileQ, 10);
 
             // getDomainIds direkt hier
             Class.forName(DataBase.getJdbcClass());
