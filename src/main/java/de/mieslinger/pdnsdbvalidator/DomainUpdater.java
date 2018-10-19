@@ -84,14 +84,15 @@ public class DomainUpdater {
             getNameFromDomains = cn.prepareStatement("select name from domains where id=?");
 
             getSOARecord = cn.prepareStatement("select name, content from records where domain_id=? and type='SOA'");
-            
-            // check only zone apex for broken record 
+
+            // check only zone apex for broken record
             // to limit effort
             getRecords = cn.prepareStatement("select r.id, r.name, r.ttl, r.type, r.prio, r.content "
-                    + "from records r "
-                    + "where r.domain_id=? "
-                    + "  and r.name=? "); 
-            
+                    + "from records r, domains d "
+                    + "where r.domain_id = ? "
+                    + "  and r.name = d.name "
+                    + "  and d.name not like '%.arpa' ");
+
             delJabberRecords = cn.prepareStatement("delete from records where domain_id=? and type = 'SRV' and content = ?");
             insBroken = cn.prepareStatement("insert into domainmetadata(domain_id, kind, content) values (?, ?, ?)");
 

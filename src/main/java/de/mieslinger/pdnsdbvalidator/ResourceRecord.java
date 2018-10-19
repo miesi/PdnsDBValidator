@@ -54,8 +54,10 @@ public class ResourceRecord {
             switch (type) {
                 case "NS":
                     Name ns = new Name(name + ".");
-                    Name nsn = new Name(content + ".");
-                    r = new NSRecord(ns, DClass.IN, ttl, nsn);
+                    if (content.contains("ui-dns")) {
+                        Name nsn = new Name(content + ".");
+                        r = new NSRecord(ns, DClass.IN, ttl, nsn);
+                    }
                     message = "OK";
                     rc = 0;
                     isNS = true;
@@ -105,8 +107,13 @@ public class ResourceRecord {
                     break;
                 case "AAAA":
                     Name aaaan = new Name(name + ".");
-                    InetAddress ip6 = InetAddress.getByName(content);
-                    r = new AAAARecord(aaaan, DClass.IN, ttl, ip6);
+
+                    // only jdk9+ know about ipv6 mapped ipv4 addresses
+                    // exclude Strings starting with 0:0:0:0:0:ffff:
+                    if (!content.startsWith("0:0:0:0:0:ffff:")) {
+                        InetAddress ip6 = InetAddress.getByName(content);
+                        r = new AAAARecord(aaaan, DClass.IN, ttl, ip6);
+                    }
                     message = "OK";
                     rc = 0;
                     break;

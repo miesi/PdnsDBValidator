@@ -1,0 +1,347 @@
+#
+# There is insufficient memory for the Java Runtime Environment to continue.
+# Native memory allocation (mmap) failed to map 390070272 bytes for committing reserved memory.
+# Possible reasons:
+#   The system is out of physical RAM or swap space
+#   In 32 bit mode, the process size limit was hit
+# Possible solutions:
+#   Reduce memory load on the system
+#   Increase physical memory or swap space
+#   Check if swap backing store is full
+#   Use 64 bit Java on a 64 bit OS
+#   Decrease Java heap size (-Xmx/-Xms)
+#   Decrease number of Java threads
+#   Decrease Java thread stack sizes (-Xss)
+#   Set larger code cache with -XX:ReservedCodeCacheSize=
+# This output file may be truncated or incomplete.
+#
+#  Out of Memory Error (os_solaris.cpp:2553), pid=13044, tid=0x000000000000000b
+#
+# JRE version: Java(TM) SE Runtime Environment (8.0_141-b15) (build 1.8.0_141-b15)
+# Java VM: Java HotSpot(TM) 64-Bit Server VM (25.141-b15 mixed mode solaris-amd64 compressed oops)
+# Core dump written. Default location: /home/mieslingert/NetBeansProjects/PdnsDBValidator/core or core.13044
+#
+
+---------------  T H R E A D  ---------------
+
+Current thread (0x00000000005d6800):  VMThread [stack: 0xfffffd7fd0ffe000,0xfffffd7fd10fe000] [id=11]
+
+Stack: [0xfffffd7fd0ffe000,0xfffffd7fd10fe000],  sp=0xfffffd7fd10fc150,  free space=1016k
+Native frames: (J=compiled Java code, j=interpreted, Vv=VM code, C=native code)
+V  [libjvm.so+0x14a2309]  void VMError::report(outputStream*)+0x929
+V  [libjvm.so+0x14a36d5]  void VMError::report_and_die()+0x551
+V  [libjvm.so+0xa11fed]  void report_vm_out_of_memory(const char*,int,unsigned long,VMErrorType,const char*)+0x89
+V  [libjvm.so+0x11c89b6]  bool os::pd_commit_memory(char*,unsigned long,unsigned long,bool)+0x1a6
+V  [libjvm.so+0x11b8bb1]  bool os::commit_memory(char*,unsigned long,unsigned long,bool)+0x25
+V  [libjvm.so+0x127a873]  bool PSVirtualSpace::expand_by(unsigned long)+0x43
+V  [libjvm.so+0x127ca5c]  bool PSYoungGen::resize_generation(unsigned long,unsigned long)+0x9c
+V  [libjvm.so+0x127c98c]  void PSYoungGen::resize(unsigned long,unsigned long)+0x28
+V  [libjvm.so+0x1275037]  bool PSScavenge::invoke_no_policy()+0x11ab
+V  [libjvm.so+0x1273d00]  bool PSScavenge::invoke()+0x3c
+V  [libjvm.so+0x11fe321]  HeapWord*ParallelScavengeHeap::failed_mem_allocate(unsigned long)+0x69
+V  [libjvm.so+0x14a5bff]  void VM_ParallelGCFailedAllocation::doit()+0x93
+V  [libjvm.so+0x14adb36]  void VM_Operation::evaluate()+0x4e
+V  [libjvm.so+0x14abf63]  void VMThread::loop()+0x4df
+V  [libjvm.so+0x14ab557]  void VMThread::run()+0x7b
+V  [libjvm.so+0x11c36e1]  java_start+0x175
+C  [libc.so.1+0x11fa0a]  _thrp_setup+0x8a
+C  [libc.so.1+0x11fd20]  _lwp_start+0x0
+
+VM_Operation (0xfffffd7feeebdae0): ParallelGCFailedAllocation, mode: safepoint, requested by thread 0x000000000041f000
+
+
+---------------  P R O C E S S  ---------------
+
+Java Threads: ( => current thread )
+  0x0000000000c9d000 JavaThread "pool-1-thread-9" [_thread_blocked, id=32, stack(0xfffffd7fcfae9000,0xfffffd7fcfbe9000)]
+  0x0000000000c9c800 JavaThread "pool-1-thread-8" [_thread_blocked, id=31, stack(0xfffffd7fcfbea000,0xfffffd7fcfcea000)]
+  0x0000000000cca800 JavaThread "pool-1-thread-7" [_thread_blocked, id=30, stack(0xfffffd7fcfceb000,0xfffffd7fcfdeb000)]
+  0x0000000000b35000 JavaThread "pool-1-thread-6" [_thread_blocked, id=29, stack(0xfffffd7fcfdec000,0xfffffd7fcfeec000)]
+  0x0000000000b33000 JavaThread "pool-1-thread-5" [_thread_blocked, id=28, stack(0xfffffd7fcfeed000,0xfffffd7fcffed000)]
+  0x0000000000bcb800 JavaThread "pool-1-thread-4" [_thread_blocked, id=27, stack(0xfffffd7fcffee000,0xfffffd7fd00ee000)]
+  0x0000000000baf800 JavaThread "pool-1-thread-3" [_thread_blocked, id=26, stack(0xfffffd7fd00ef000,0xfffffd7fd01ef000)]
+  0x00000000009cc800 JavaThread "pool-1-thread-2" [_thread_blocked, id=25, stack(0xfffffd7fd01f0000,0xfffffd7fd02f0000)]
+  0x0000000000a2a800 JavaThread "pool-1-thread-1" [_thread_blocked, id=24, stack(0xfffffd7fd02f1000,0xfffffd7fd03f1000)]
+  0x0000000000728000 JavaThread "Abandoned connection cleanup thread" daemon [_thread_blocked, id=23, stack(0xfffffd7fd03f2000,0xfffffd7fd04f2000)]
+  0x00000000006f0000 JavaThread "Thread-1" [_thread_blocked, id=22, stack(0xfffffd7fd04f3000,0xfffffd7fd05f3000)]
+  0x00000000006ee800 JavaThread "Thread-0" [_thread_blocked, id=21, stack(0xfffffd7fd05f4000,0xfffffd7fd06f4000)]
+  0x0000000000690000 JavaThread "Service Thread" daemon [_thread_blocked, id=19, stack(0xfffffd7fd07f6000,0xfffffd7fd08f6000)]
+  0x0000000000629000 JavaThread "C1 CompilerThread3" daemon [_thread_blocked, id=18, stack(0xfffffd7fd08f7000,0xfffffd7fd09f7000)]
+  0x0000000000624800 JavaThread "C2 CompilerThread2" daemon [_thread_blocked, id=17, stack(0xfffffd7fd09f8000,0xfffffd7fd0af8000)]
+  0x0000000000622800 JavaThread "C2 CompilerThread1" daemon [_thread_blocked, id=16, stack(0xfffffd7fd0af9000,0xfffffd7fd0bf9000)]
+  0x0000000000620000 JavaThread "C2 CompilerThread0" daemon [_thread_blocked, id=15, stack(0xfffffd7fd0bfa000,0xfffffd7fd0cfa000)]
+  0x000000000061f000 JavaThread "Signal Dispatcher" daemon [_thread_blocked, id=14, stack(0xfffffd7fd0cfb000,0xfffffd7fd0dfb000)]
+  0x00000000005e8000 JavaThread "Finalizer" daemon [_thread_blocked, id=13, stack(0xfffffd7fd0dfc000,0xfffffd7fd0efc000)]
+  0x00000000005de000 JavaThread "Reference Handler" daemon [_thread_blocked, id=12, stack(0xfffffd7fd0efd000,0xfffffd7fd0ffd000)]
+  0x000000000041f000 JavaThread "main" [_thread_blocked, id=2, stack(0xfffffd7feedbf000,0xfffffd7feeebf000)]
+
+Other Threads:
+=>0x00000000005d6800 VMThread [stack: 0xfffffd7fd0ffe000,0xfffffd7fd10fe000] [id=11]
+  0x0000000000694000 WatcherThread [stack: 0xfffffd7fd06f5000,0xfffffd7fd07f5000] [id=20]
+
+VM state:at safepoint (normal execution)
+
+VM Mutex/Monitor currently owned by a thread:  ([mutex/lock_event])
+[0x000000000041d6b0] Threads_lock - owner thread: 0x00000000005d6800
+[0x000000000041dc50] Heap_lock - owner thread: 0x000000000041f000
+
+Heap:
+ PSYoungGen      total 186368K, used 10240K [0x000000076b200000, 0x000000077c600000, 0x00000007c0000000)
+  eden space 176128K, 0% used [0x000000076b200000,0x000000076b200000,0x0000000775e00000)
+  from space 10240K, 100% used [0x000000077b200000,0x000000077bc00000,0x000000077bc00000)
+  to   space 10240K, 0% used [0x000000077bc00000,0x000000077bc00000,0x000000077c600000)
+ ParOldGen       total 655360K, used 489817K [0x00000006c1600000, 0x00000006e9600000, 0x000000076b200000)
+  object space 655360K, 74% used [0x00000006c1600000,0x00000006df4567c8,0x00000006e9600000)
+ Metaspace       used 8044K, capacity 8262K, committed 8320K, reserved 1056768K
+  class space    used 827K, capacity 893K, committed 896K, reserved 1048576K
+
+Card table byte_map: [0xfffffd7fd2200000,0xfffffd7fd29f6000] byte_map_base: 0xfffffd7fcebf5000
+
+Marking Bits: (ParMarkBitMap*) 0xfffffd7fe3a2ca20
+ Begin Bits: [0xfffffd7fe5400000, 0xfffffd7fe93a8000)
+ End Bits:   [0xfffffd7fe93a8000, 0xfffffd7fed350000)
+
+Polling page: 0xfffffd7feed40000
+
+CodeCache: size=245760Kb used=2888Kb max_used=2899Kb free=242871Kb
+ bounds [0xfffffd7fd2e00000, 0xfffffd7fd3200000, 0xfffffd7fe1e00000]
+ total_blobs=1006 nmethods=641 adapters=279
+ compilation: enabled
+
+Compilation events (10 events):
+Event: 12,571 Thread 0x0000000000629000  637       3       java.util.concurrent.ConcurrentLinkedQueue::poll (85 bytes)
+Event: 12,571 Thread 0x0000000000629000 nmethod 637 0xfffffd7fd30c7590 code [0xfffffd7fd30c7760, 0xfffffd7fd30c8130]
+Event: 13,271 Thread 0x0000000000620000  638       4       java.lang.String::getChars (62 bytes)
+Event: 13,271 Thread 0x0000000000629000  639   !   3       java.nio.charset.CharsetEncoder::encode (285 bytes)
+Event: 13,272 Thread 0x0000000000620000 nmethod 638 0xfffffd7fd30c7110 code [0xfffffd7fd30c7260, 0xfffffd7fd30c73f8]
+Event: 13,272 Thread 0x0000000000629000 nmethod 639 0xfffffd7fd30d5d50 code [0xfffffd7fd30d6020, 0xfffffd7fd30d75f8]
+Event: 13,571 Thread 0x0000000000622800  640       4       com.mysql.jdbc.ConnectionPropertiesImpl$BooleanConnectionProperty::getValueAsBoolean (11 bytes)
+Event: 13,571 Thread 0x0000000000629000  641       3       com.mysql.jdbc.Buffer::newReadLength (74 bytes)
+Event: 13,572 Thread 0x0000000000629000 nmethod 641 0xfffffd7fd30d5690 code [0xfffffd7fd30d5820, 0xfffffd7fd30d5c28]
+Event: 13,572 Thread 0x0000000000622800 nmethod 640 0xfffffd7fd30c5e50 code [0xfffffd7fd30c5fa0, 0xfffffd7fd30c6058]
+
+GC Heap History (10 events):
+Event: 5,561 GC heap after
+Heap after GC invocations=2 (full 0):
+ PSYoungGen      total 141312K, used 10236K [0x000000076b200000, 0x0000000774600000, 0x00000007c0000000)
+  eden space 131072K, 0% used [0x000000076b200000,0x000000076b200000,0x0000000773200000)
+  from space 10240K, 99% used [0x0000000773c00000,0x00000007745ff130,0x0000000774600000)
+  to   space 10240K, 0% used [0x0000000773200000,0x0000000773200000,0x0000000773c00000)
+ ParOldGen       total 176128K, used 83854K [0x00000006c1600000, 0x00000006cc200000, 0x000000076b200000)
+  object space 176128K, 47% used [0x00000006c1600000,0x00000006c67e3988,0x00000006cc200000)
+ Metaspace       used 8040K, capacity 8262K, committed 8320K, reserved 1056768K
+  class space    used 827K, capacity 893K, committed 896K, reserved 1048576K
+}
+Event: 6,828 GC heap before
+{Heap before GC invocations=3 (full 0):
+ PSYoungGen      total 141312K, used 141308K [0x000000076b200000, 0x0000000774600000, 0x00000007c0000000)
+  eden space 131072K, 100% used [0x000000076b200000,0x0000000773200000,0x0000000773200000)
+  from space 10240K, 99% used [0x0000000773c00000,0x00000007745ff130,0x0000000774600000)
+  to   space 10240K, 0% used [0x0000000773200000,0x0000000773200000,0x0000000773c00000)
+ ParOldGen       total 176128K, used 83854K [0x00000006c1600000, 0x00000006cc200000, 0x000000076b200000)
+  object space 176128K, 47% used [0x00000006c1600000,0x00000006c67e3988,0x00000006cc200000)
+ Metaspace       used 8044K, capacity 8262K, committed 8320K, reserved 1056768K
+  class space    used 827K, capacity 893K, committed 896K, reserved 1048576K
+Event: 7,077 GC heap after
+Heap after GC invocations=3 (full 0):
+ PSYoungGen      total 141312K, used 10224K [0x000000076b200000, 0x000000077c600000, 0x00000007c0000000)
+  eden space 131072K, 0% used [0x000000076b200000,0x000000076b200000,0x0000000773200000)
+  from space 10240K, 99% used [0x0000000773200000,0x0000000773bfc140,0x0000000773c00000)
+  to   space 10240K, 0% used [0x000000077bc00000,0x000000077bc00000,0x000000077c600000)
+ ParOldGen       total 204800K, used 194993K [0x00000006c1600000, 0x00000006cde00000, 0x000000076b200000)
+  object space 204800K, 95% used [0x00000006c1600000,0x00000006cd46c590,0x00000006cde00000)
+ Metaspace       used 8044K, capacity 8262K, committed 8320K, reserved 1056768K
+  class space    used 827K, capacity 893K, committed 896K, reserved 1048576K
+}
+Event: 7,078 GC heap before
+{Heap before GC invocations=4 (full 1):
+ PSYoungGen      total 141312K, used 10224K [0x000000076b200000, 0x000000077c600000, 0x00000007c0000000)
+  eden space 131072K, 0% used [0x000000076b200000,0x000000076b200000,0x0000000773200000)
+  from space 10240K, 99% used [0x0000000773200000,0x0000000773bfc140,0x0000000773c00000)
+  to   space 10240K, 0% used [0x000000077bc00000,0x000000077bc00000,0x000000077c600000)
+ ParOldGen       total 204800K, used 194993K [0x00000006c1600000, 0x00000006cde00000, 0x000000076b200000)
+  object space 204800K, 95% used [0x00000006c1600000,0x00000006cd46c590,0x00000006cde00000)
+ Metaspace       used 8044K, capacity 8262K, committed 8320K, reserved 1056768K
+  class space    used 827K, capacity 893K, committed 896K, reserved 1048576K
+Event: 9,392 GC heap after
+Heap after GC invocations=4 (full 1):
+ PSYoungGen      total 141312K, used 0K [0x000000076b200000, 0x000000077c600000, 0x00000007c0000000)
+  eden space 131072K, 0% used [0x000000076b200000,0x000000076b200000,0x0000000773200000)
+  from space 10240K, 0% used [0x0000000773200000,0x0000000773200000,0x0000000773c00000)
+  to   space 10240K, 0% used [0x000000077bc00000,0x000000077bc00000,0x000000077c600000)
+ ParOldGen       total 438272K, used 203613K [0x00000006c1600000, 0x00000006dc200000, 0x000000076b200000)
+  object space 438272K, 46% used [0x00000006c1600000,0x00000006cdcd7530,0x00000006dc200000)
+ Metaspace       used 8044K, capacity 8262K, committed 8320K, reserved 1056768K
+  class space    used 827K, capacity 893K, committed 896K, reserved 1048576K
+}
+Event: 10,243 GC heap before
+{Heap before GC invocations=5 (full 1):
+ PSYoungGen      total 141312K, used 125452K [0x000000076b200000, 0x000000077c600000, 0x00000007c0000000)
+  eden space 131072K, 95% used [0x000000076b200000,0x0000000772c833d0,0x0000000773200000)
+  from space 10240K, 0% used [0x0000000773200000,0x0000000773200000,0x0000000773c00000)
+  to   space 10240K, 0% used [0x000000077bc00000,0x000000077bc00000,0x000000077c600000)
+ ParOldGen       total 438272K, used 203613K [0x00000006c1600000, 0x00000006dc200000, 0x000000076b200000)
+  object space 438272K, 46% used [0x00000006c1600000,0x00000006cdcd7530,0x00000006dc200000)
+ Metaspace       used 8044K, capacity 8262K, committed 8320K, reserved 1056768K
+  class space    used 827K, capacity 893K, committed 896K, reserved 1048576K
+Event: 10,510 GC heap after
+Heap after GC invocations=5 (full 1):
+ PSYoungGen      total 186368K, used 10240K [0x000000076b200000, 0x000000077c600000, 0x00000007c0000000)
+  eden space 176128K, 0% used [0x000000076b200000,0x000000076b200000,0x0000000775e00000)
+  from space 10240K, 100% used [0x000000077bc00000,0x000000077c600000,0x000000077c600000)
+  to   space 10240K, 0% used [0x000000077b200000,0x000000077b200000,0x000000077bc00000)
+ ParOldGen       total 438272K, used 324054K [0x00000006c1600000, 0x00000006dc200000, 0x000000076b200000)
+  object space 438272K, 73% used [0x00000006c1600000,0x00000006d5275930,0x00000006dc200000)
+ Metaspace       used 8044K, capacity 8262K, committed 8320K, reserved 1056768K
+  class space    used 827K, capacity 893K, committed 896K, reserved 1048576K
+}
+Event: 10,510 GC heap before
+{Heap before GC invocations=6 (full 2):
+ PSYoungGen      total 186368K, used 10240K [0x000000076b200000, 0x000000077c600000, 0x00000007c0000000)
+  eden space 176128K, 0% used [0x000000076b200000,0x000000076b200000,0x0000000775e00000)
+  from space 10240K, 100% used [0x000000077bc00000,0x000000077c600000,0x000000077c600000)
+  to   space 10240K, 0% used [0x000000077b200000,0x000000077b200000,0x000000077bc00000)
+ ParOldGen       total 438272K, used 324054K [0x00000006c1600000, 0x00000006dc200000, 0x000000076b200000)
+  object space 438272K, 73% used [0x00000006c1600000,0x00000006d5275930,0x00000006dc200000)
+ Metaspace       used 8044K, capacity 8262K, committed 8320K, reserved 1056768K
+  class space    used 827K, capacity 893K, committed 896K, reserved 1048576K
+Event: 12,570 GC heap after
+Heap after GC invocations=6 (full 2):
+ PSYoungGen      total 186368K, used 0K [0x000000076b200000, 0x000000077c600000, 0x00000007c0000000)
+  eden space 176128K, 0% used [0x000000076b200000,0x000000076b200000,0x0000000775e00000)
+  from space 10240K, 0% used [0x000000077bc00000,0x000000077bc00000,0x000000077c600000)
+  to   space 10240K, 0% used [0x000000077b200000,0x000000077b200000,0x000000077bc00000)
+ ParOldGen       total 655360K, used 307184K [0x00000006c1600000, 0x00000006e9600000, 0x000000076b200000)
+  object space 655360K, 46% used [0x00000006c1600000,0x00000006d41fc1e8,0x00000006e9600000)
+ Metaspace       used 8044K, capacity 8262K, committed 8320K, reserved 1056768K
+  class space    used 827K, capacity 893K, committed 896K, reserved 1048576K
+}
+Event: 13,844 GC heap before
+{Heap before GC invocations=7 (full 2):
+ PSYoungGen      total 186368K, used 175851K [0x000000076b200000, 0x000000077c600000, 0x00000007c0000000)
+  eden space 176128K, 99% used [0x000000076b200000,0x0000000775dbade8,0x0000000775e00000)
+  from space 10240K, 0% used [0x000000077bc00000,0x000000077bc00000,0x000000077c600000)
+  to   space 10240K, 0% used [0x000000077b200000,0x000000077b200000,0x000000077bc00000)
+ ParOldGen       total 655360K, used 307184K [0x00000006c1600000, 0x00000006e9600000, 0x000000076b200000)
+  object space 655360K, 46% used [0x00000006c1600000,0x00000006d41fc1e8,0x00000006e9600000)
+ Metaspace       used 8044K, capacity 8262K, committed 8320K, reserved 1056768K
+  class space    used 827K, capacity 893K, committed 896K, reserved 1048576K
+
+Deoptimization events (8 events):
+Event: 0,257 Thread 0x000000000041f000 Uncommon trap: reason=unstable_if action=reinterpret pc=0xfffffd7fd2f4e804 method=java.lang.String.indexOf(II)I @ 49
+Event: 0,269 Thread 0x000000000041f000 Uncommon trap: reason=unstable_if action=reinterpret pc=0xfffffd7fd2f41488 method=java.util.Properties.loadConvert([CII[C)Ljava/lang/String; @ 4
+Event: 0,269 Thread 0x000000000041f000 Uncommon trap: reason=unstable_if action=reinterpret pc=0xfffffd7fd2f3e4d4 method=java.util.Properties$LineReader.readLine()I @ 174
+Event: 0,308 Thread 0x000000000041f000 Uncommon trap: reason=unstable_if action=reinterpret pc=0xfffffd7fd2f71e78 method=java.util.Properties$LineReader.readLine()I @ 174
+Event: 0,555 Thread 0x000000000041f000 Uncommon trap: reason=unstable_if action=reinterpret pc=0xfffffd7fd3046984 method=com.mysql.jdbc.util.ReadAheadInputStream.readFromUnderlyingStreamIfNecessary([BII)I @ 200
+Event: 0,560 Thread 0x000000000041f000 Uncommon trap: reason=unstable_if action=reinterpret pc=0xfffffd7fd303fc50 method=com.mysql.jdbc.util.ReadAheadInputStream.readFromUnderlyingStreamIfNecessary([BII)I @ 200
+Event: 0,567 Thread 0x000000000041f000 Uncommon trap: reason=unstable_if action=reinterpret pc=0xfffffd7fd3026eb8 method=com.mysql.jdbc.util.ReadAheadInputStream.read()I @ 12
+Event: 0,571 Thread 0x000000000041f000 Uncommon trap: reason=unstable_if action=reinterpret pc=0xfffffd7fd30aa240 method=com.mysql.jdbc.util.ReadAheadInputStream.readFromUnderlyingStreamIfNecessary([BII)I @ 200
+
+Internal exceptions (10 events):
+Event: 0,212 Thread 0x000000000041f000 Exception <a 'java/security/PrivilegedActionException'> (0x000000076b336eb0) thrown at [/HUDSON/java_re/workspace/8-2-build-solaris-amd64/jdk8u141/9370/hotspot/src/share/vm/prims/jvm.cpp, line 1390]
+Event: 0,212 Thread 0x000000000041f000 Exception <a 'java/security/PrivilegedActionException'> (0x000000076b3372a8) thrown at [/HUDSON/java_re/workspace/8-2-build-solaris-amd64/jdk8u141/9370/hotspot/src/share/vm/prims/jvm.cpp, line 1390]
+Event: 0,218 Thread 0x000000000041f000 Exception <a 'java/security/PrivilegedActionException'> (0x000000076b4c6168) thrown at [/HUDSON/java_re/workspace/8-2-build-solaris-amd64/jdk8u141/9370/hotspot/src/share/vm/prims/jvm.cpp, line 1390]
+Event: 0,218 Thread 0x000000000041f000 Exception <a 'java/security/PrivilegedActionException'> (0x000000076b4c6378) thrown at [/HUDSON/java_re/workspace/8-2-build-solaris-amd64/jdk8u141/9370/hotspot/src/share/vm/prims/jvm.cpp, line 1390]
+Event: 0,218 Thread 0x000000000041f000 Exception <a 'java/security/PrivilegedActionException'> (0x000000076b4c9190) thrown at [/HUDSON/java_re/workspace/8-2-build-solaris-amd64/jdk8u141/9370/hotspot/src/share/vm/prims/jvm.cpp, line 1390]
+Event: 0,218 Thread 0x000000000041f000 Exception <a 'java/security/PrivilegedActionException'> (0x000000076b4c9588) thrown at [/HUDSON/java_re/workspace/8-2-build-solaris-amd64/jdk8u141/9370/hotspot/src/share/vm/prims/jvm.cpp, line 1390]
+Event: 0,219 Thread 0x000000000041f000 Exception <a 'java/security/PrivilegedActionException'> (0x000000076b4cc668) thrown at [/HUDSON/java_re/workspace/8-2-build-solaris-amd64/jdk8u141/9370/hotspot/src/share/vm/prims/jvm.cpp, line 1390]
+Event: 0,219 Thread 0x000000000041f000 Exception <a 'java/security/PrivilegedActionException'> (0x000000076b4cc878) thrown at [/HUDSON/java_re/workspace/8-2-build-solaris-amd64/jdk8u141/9370/hotspot/src/share/vm/prims/jvm.cpp, line 1390]
+Event: 0,219 Thread 0x000000000041f000 Exception <a 'java/security/PrivilegedActionException'> (0x000000076b4cf710) thrown at [/HUDSON/java_re/workspace/8-2-build-solaris-amd64/jdk8u141/9370/hotspot/src/share/vm/prims/jvm.cpp, line 1390]
+Event: 0,219 Thread 0x000000000041f000 Exception <a 'java/security/PrivilegedActionException'> (0x000000076b4cfb08) thrown at [/HUDSON/java_re/workspace/8-2-build-solaris-amd64/jdk8u141/9370/hotspot/src/share/vm/prims/jvm.cpp, line 1390]
+
+Events (10 events):
+Event: 0,705 Thread 0x000000000041f000 DEOPT UNPACKING pc=0xfffffd7fd2e47633 sp=0xfffffd7feeebdff8 mode 0
+Event: 1,396 Executing VM operation: ParallelGCFailedAllocation
+Event: 4,471 Executing VM operation: ParallelGCFailedAllocation done
+Event: 5,426 Executing VM operation: ParallelGCFailedAllocation
+Event: 5,561 Executing VM operation: ParallelGCFailedAllocation done
+Event: 6,828 Executing VM operation: ParallelGCFailedAllocation
+Event: 9,392 Executing VM operation: ParallelGCFailedAllocation done
+Event: 10,243 Executing VM operation: ParallelGCFailedAllocation
+Event: 12,570 Executing VM operation: ParallelGCFailedAllocation done
+Event: 13,844 Executing VM operation: ParallelGCFailedAllocation
+
+
+Dynamic libraries:
+0x0000000000400000 	/opt/jdk1.8.0_141/bin/java
+0xfffffd7fe3ac0000 	/opt/jdk1.8.0_141/bin/../lib/amd64/jli/libjli.so
+0xfffffd7fe3dfc000 	/lib/64/libthread.so.1
+0xfffffd7fee9df000 	/lib/64/libdl.so.1
+0xfffffd7fef170000 	/lib/64/libc.so.1
+0xfffffd7fe21a0000 	/opt/jdk1.8.0_141/jre/lib/amd64/server/libjvm.so
+0xfffffd7fee9e0000 	/lib/64/libsocket.so.1
+0xfffffd7fe3d1f000 	/usr/lib/64/libsched.so.1
+0xfffffd7fe2180000 	/lib/64/libm.so.1
+0xfffffd7fe2150000 	/usr/lib/64/libCrun.so.1
+0xfffffd7fe444f000 	/lib/64/libdoor.so.1
+0xfffffd7fe2110000 	/usr/lib/64/libdemangle.so.1
+0xfffffd7fed4c0000 	/lib/64/libkstat.so.1
+0xfffffd7feeec0000 	/lib/64/libm.so.2
+0xfffffd7fee940000 	/lib/64/libnsl.so.1
+0xfffffd7fee420000 	/lib/64/libmd.so.1
+0xfffffd7fee400000 	/lib/64/libmp.so.2
+0xfffffd7fe2060000 	/opt/jdk1.8.0_141/jre/lib/amd64/libverify.so
+0xfffffd7fe2010000 	/opt/jdk1.8.0_141/jre/lib/amd64/libjava.so
+0xfffffd7fed550000 	/lib/64/libscf.so.1
+0xfffffd7feda20000 	/lib/64/libuutil.so.1
+0xfffffd7fed900000 	/lib/64/libgen.so.1
+0xfffffd7fede30000 	/lib/64/libnvpair.so.1
+0xfffffd7fed520000 	/usr/lib/64/libsmbios.so.1
+0xfffffd7fee900000 	/lib/64/libdevinfo.so.1
+0xfffffd7fed920000 	/lib/64/libsec.so.1
+0xfffffd7fed9e0000 	/lib/64/libavl.so.1
+0xfffffd7fed970000 	/usr/lib/64/libidmap.so.1
+0xfffffd7fe1fe0000 	/opt/jdk1.8.0_141/jre/lib/amd64/libzip.so
+0xfffffd7fede70000 	/opt/jdk1.8.0_141/jre/lib/amd64/libnet.so
+0xfffffd7fedae0000 	/opt/jdk1.8.0_141/jre/lib/amd64/libj2ucrypto.so
+
+VM Arguments:
+java_command: de.mieslinger.pdnsdbvalidator.App
+java_class_path (initial): /home/mieslingert/NetBeansProjects/PdnsDBValidator/target/classes:/home/mieslingert/.m2/repository/mysql/mysql-connector-java/5.1.21/mysql-connector-java-5.1.21.jar:/home/mieslingert/.m2/repository/dnsjava/dnsjava/2.1.8/dnsjava-2.1.8.jar
+Launcher Type: SUN_STANDARD
+
+Environment Variables:
+JAVA_HOME=/opt/jdk
+PATH=/usr/bin:/usr/sbin:/sbin:/usr/gnu/bin
+LD_LIBRARY_PATH=/opt/jdk1.8.0_141/jre/lib/amd64/server:/opt/jdk1.8.0_141/jre/lib/amd64:/opt/jdk1.8.0_141/jre/../lib/amd64:/opt/jdk/jre/lib/amd64/client:/opt/jdk/jre/lib/amd64/server:/opt/jdk/jre/lib/i386/client:/opt/jdk/jre/lib/i386/server:
+SHELL=/bin/bash
+DISPLAY=:0
+
+Signal Handlers:
+SIGSEGV: [libjvm.so+0x14a4840], sa_mask[0]=11111111011111111111110111111111, sa_flags=SA_RESTART|SA_SIGINFO
+SIGBUS: [libjvm.so+0x14a4840], sa_mask[0]=11111111011111111111110111111111, sa_flags=SA_RESTART|SA_SIGINFO
+SIGFPE: [libjvm.so+0x11ce044], sa_mask[0]=11111111011111111111110111111111, sa_flags=SA_RESTART|SA_SIGINFO
+SIGPIPE: [libjvm.so+0x11ce044], sa_mask[0]=11111111011111111111110111111111, sa_flags=SA_RESTART|SA_SIGINFO
+SIGXFSZ: [libjvm.so+0x11ce044], sa_mask[0]=11111111011111111111110111111111, sa_flags=SA_RESTART|SA_SIGINFO
+SIGILL: [libjvm.so+0x11ce044], sa_mask[0]=11111111011111111111110111111111, sa_flags=SA_RESTART|SA_SIGINFO
+SIGUSR1: SIG_DFL, sa_mask[0]=00000000000000000000000000000000, sa_flags=none
+SIGUSR2: SIG_DFL, sa_mask[0]=00000000000000000000000000000000, sa_flags=none
+SIGQUIT: [libjvm.so+0x11c7878], sa_mask[0]=11111111011111111111110111111111, sa_flags=SA_RESTART
+SIGHUP: [libjvm.so+0x11c7878], sa_mask[0]=11111111011111111111110111111111, sa_flags=SA_RESTART
+SIGINT: SIG_IGN, sa_mask[0]=00000000000000000000000000000000, sa_flags=none
+SIGTERM: [libjvm.so+0x11c7878], sa_mask[0]=11111111011111111111110111111111, sa_flags=SA_RESTART
+SIG39: [libjvm.so+0x11ce08c], sa_mask[0]=00000000000000000000000000000000, sa_flags=SA_SIGINFO
+SIG40: [libjvm.so+0x11ce044], sa_mask[0]=11111111011111111111110111111111, sa_flags=SA_RESTART|SA_SIGINFO
+
+
+---------------  S Y S T E M  ---------------
+
+OS:             OpenIndiana Hipster 2018.04 (powered by illumos)
+        OpenIndiana Project, part of The Illumos Foundation (C) 2010-2018
+                        Use is subject to license terms.
+                           Assembled 27 April 2018
+
+uname:SunOS 5.11 illumos-b86e7e3f0e i86pc
+  (T2 libthread)
+rlimit: STACK 10240k, CORE infinity, NOFILE 65536, AS infinity
+load average:0,91 0,61 0,43
+
+CPU:total 8 (initial active 8) (4 cores per cpu, 2 threads per core) family 6 model 60 stepping 3, cmov, cx8, fxsr, mmx, sse, sse2, sse3, ssse3, sse4.1, sse4.2, popcnt, avx, avx2, aes, clmul, erms, rtm, lzcnt, ht, tsc, tscinvbit, bmi1, bmi2
+
+Memory: 4k page, physical 16682668k(6691200k free)
+
+vm_info: Java HotSpot(TM) 64-Bit Server VM (25.141-b15) for solaris-amd64 JRE (1.8.0_141-b15), built on Jul 12 2017 11:38:03 by "java_re" with Sun Studio 12u1
+
+time: Thu Oct 18 09:03:17 2018
+elapsed time: 24 seconds (0d 0h 0m 24s)
+
