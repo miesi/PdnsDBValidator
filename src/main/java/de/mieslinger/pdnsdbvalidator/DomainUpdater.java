@@ -197,10 +197,10 @@ public class DomainUpdater {
                         } else {
                             criticalLogFileQ.add("domain_id: " + domainId + " " + zoneName + "rsId is NULL");
                         }
-                        logFileQ.add("domain_id: " + domainId + " " + zoneName + "recordId for TXT testrecord: " + recordId);
+                        logFileQ.add("domain_id: " + domainId + " " + zoneName + " recordId for TXT testrecord: " + recordId);
 
                         // wait 500ms for propagation of added record
-                        Thread.sleep(2500);
+                        Thread.sleep(1000);
 
                         // query from root
                         // will always fail in test

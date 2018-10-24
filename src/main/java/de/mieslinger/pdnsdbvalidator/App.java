@@ -27,12 +27,12 @@ public class App {
             Thread ctlfw = new Thread(criticalLogfileWriter);
             ctlfw.start();
 
-            DomainUpdater domainUpdater = new DomainUpdater(domainIdQ, logFileQ, criticalLogFileQ, 40);
+            DomainUpdater domainUpdater = new DomainUpdater(domainIdQ, logFileQ, criticalLogFileQ, 150);
 
             // getDomainIds direkt hier
             Class.forName(DataBase.getJdbcClass());
             Connection cn = DriverManager.getConnection(DataBase.getJdbcUrl(), DataBase.getDbUser(), DataBase.getDbPass());
-            PreparedStatement stAllDomainIds = cn.prepareStatement("select id from domains limit 400");
+            PreparedStatement stAllDomainIds = cn.prepareStatement("select id from domains limit 40000");
             ResultSet rsDomainIds = stAllDomainIds.executeQuery();
             while (rsDomainIds.next()) {
                 domainIdQ.add(rsDomainIds.getLong(1));
