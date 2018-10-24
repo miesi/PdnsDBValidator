@@ -26,7 +26,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>net.oneandone.itomi.dns.customerdnsupdater.App</mainClass>
+                            <mainClass>de.mieslinger.pdnsdbvalidator.App</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>

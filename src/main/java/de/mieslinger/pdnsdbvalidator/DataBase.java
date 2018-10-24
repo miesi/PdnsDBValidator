@@ -18,6 +18,7 @@ public class DataBase {
     private static String dbUser = null;
     private static String dbPass = null;
     private static String jdbcClass = null;
+    private static String recursor = null;
 
     static {
         Properties cduProperties = new Properties();
@@ -32,7 +33,7 @@ public class DataBase {
         dbUser = cduProperties.getProperty("dbUser", "root");
         dbPass = cduProperties.getProperty("dbPass", "");
         jdbcClass = cduProperties.getProperty("jdbcClass", "com.mysql.jdbc.Driver");
-
+        recursor = cduProperties.getProperty("recursor", "1.1.1.1");
     }
 
     public static String getJdbcUrl() {
@@ -49,5 +50,9 @@ public class DataBase {
 
     public static String getDbPass() {
         return dbPass;
+    }
+
+    public static String getRecursor() {
+        return recursor;
     }
 }

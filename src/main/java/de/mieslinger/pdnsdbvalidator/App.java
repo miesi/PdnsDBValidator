@@ -27,12 +27,12 @@ public class App {
             Thread ctlfw = new Thread(criticalLogfileWriter);
             ctlfw.start();
 
-            DomainUpdater domainUpdater = new DomainUpdater(domainIdQ, logFileQ, criticalLogFileQ, 10);
+            DomainUpdater domainUpdater = new DomainUpdater(domainIdQ, logFileQ, criticalLogFileQ, 40);
 
             // getDomainIds direkt hier
             Class.forName(DataBase.getJdbcClass());
             Connection cn = DriverManager.getConnection(DataBase.getJdbcUrl(), DataBase.getDbUser(), DataBase.getDbPass());
-            PreparedStatement stAllDomainIds = cn.prepareStatement("select id from domains");
+            PreparedStatement stAllDomainIds = cn.prepareStatement("select id from domains limit 400");
             ResultSet rsDomainIds = stAllDomainIds.executeQuery();
             while (rsDomainIds.next()) {
                 domainIdQ.add(rsDomainIds.getLong(1));
@@ -44,11 +44,11 @@ public class App {
             // Queue Sizes angucken
             while (domainIdQ.size() > 0) {
                 System.out.println("domainIdQ size: " + domainIdQ.size());
-                Thread.sleep(1000);
+                Thread.sleep(10000);
             }
             while (logFileQ.size() > 0) {
                 System.out.println("logFileQ size: " + logFileQ.size());
-                Thread.sleep(1000);
+                Thread.sleep(10000);
             }
             Thread.sleep(10000);
             // Shutdown einleiten
