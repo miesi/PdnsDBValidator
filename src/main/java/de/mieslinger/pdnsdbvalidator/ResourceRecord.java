@@ -60,10 +60,8 @@ public class ResourceRecord {
                         content = content + ".";
                     }
 
-                    if (content.contains("ui-dns")) {
-                        Name nsn = new Name(content);
-                        r = new NSRecord(ns, DClass.IN, ttl, nsn);
-                    }
+                    Name nsn = new Name(content);
+                    r = new NSRecord(ns, DClass.IN, ttl, nsn);
                     message = "OK";
                     rc = 0;
                     isNS = true;
@@ -110,8 +108,17 @@ public class ResourceRecord {
                 case "SOA":
                     Name soan = new Name(name + ".");
                     String[] soaFields = content.split(" ");
-                    Name pri = new Name(soaFields[0] + ".");
-                    Name mail = new Name(soaFields[1] + ".");
+
+                    if (!soaFields[0].endsWith(".")) {
+                        soaFields[0] = soaFields[0] + ".";
+                    }
+                    Name pri = new Name(soaFields[0]);
+
+                    if (!soaFields[1].endsWith(".")) {
+                        soaFields[1] = soaFields[1] + ".";
+                    }
+                    Name mail = new Name(soaFields[1]);
+
                     Long serial = Long.parseLong(soaFields[2]);
                     Long refresh = Long.parseLong(soaFields[3]);
                     Long retry = Long.parseLong(soaFields[4]);
