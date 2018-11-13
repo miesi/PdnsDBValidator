@@ -122,8 +122,6 @@ public class DomainUpdater {
                 if (domainId != null) {
                     updatedDomains++;
                     try {
-
-                        // Check SOA
                         getNameFromDomains.setLong(1, domainId);
                         String domainName = "";
                         ResultSet rsD = getNameFromDomains.executeQuery();
@@ -132,6 +130,21 @@ public class DomainUpdater {
                         }
                         rsD.close();
                         logFileQ.add("checking domainId: " + domainId + " domainName: " + domainName);
+
+                        // cleanup old stuff anyway
+                        // jabber
+                        // das das jemals funktioniert hat. Da hätte NIE ein '.' am Ende sein dürfen.
+                        delJabberRecords.setLong(1, domainId);
+                        delJabberRecords.setString(2, "0 5269 gmx.net.");
+                        int i = delJabberRecords.executeUpdate();
+
+                        delJabberRecords.setLong(1, domainId);
+                        delJabberRecords.setString(2, "0 5222 gmx.net.");
+                        int j = delJabberRecords.executeUpdate();
+
+                        logFileQ.add("Jabber clean complete for " + domainName);
+
+                        // Check SOA
                         getSOARecord.setLong(1, domainId);
                         rs = getSOARecord.executeQuery();
                         if (rs.next()) {
@@ -159,6 +172,7 @@ public class DomainUpdater {
                         } else {
                             setDomainIdBroken(insBroken, domainId, "no SOA");
                             criticalLogFileQ.add("domain_id: " + domainId + " " + zoneName + " SOA broken");
+                            break;
                         }
 
                         try {
@@ -167,19 +181,6 @@ public class DomainUpdater {
                         }
 
                         logFileQ.add("SOA checking complete for " + domainName);
-
-                        // cleanup old stuff anyway
-                        // jabber
-                        // das das jemals funktioniert hat. Da hätte NIE ein '.' am Ende sein dürfen.
-                        delJabberRecords.setLong(1, domainId);
-                        delJabberRecords.setString(2, "0 5269 gmx.net.");
-                        int i = delJabberRecords.executeUpdate();
-
-                        delJabberRecords.setLong(1, domainId);
-                        delJabberRecords.setString(2, "0 5222 gmx.net.");
-                        int j = delJabberRecords.executeUpdate();
-
-                        logFileQ.add("Jabber clean complete for " + domainName);
 
                         // Check whether Domain is delegated
                         // insert record
