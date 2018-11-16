@@ -21,18 +21,20 @@ public class App {
             // setup Queues und Thread Pools
             LogFileWriter logfileWriter = new LogFileWriter(logFileQ, System.getProperty("user.home") + "/pdns-db-validator.log");
             Thread tlfw = new Thread(logfileWriter);
+            tlfw.setName("logFileQ-writer");
             tlfw.start();
 
             LogFileWriter criticalLogfileWriter = new LogFileWriter(criticalLogFileQ, System.getProperty("user.home") + "/pdns-db-validator.warn");
             Thread ctlfw = new Thread(criticalLogfileWriter);
+            ctlfw.setName("criticalLogFileQ-writer");
             ctlfw.start();
 
-            DomainUpdater domainUpdater = new DomainUpdater(domainIdQ, logFileQ, criticalLogFileQ, 150);
+            DomainUpdater domainUpdater = new DomainUpdater(domainIdQ, logFileQ, criticalLogFileQ, 25);
 
             // getDomainIds direkt hier
             Class.forName(DataBase.getJdbcClass());
             Connection cn = DriverManager.getConnection(DataBase.getJdbcUrl(), DataBase.getDbUser(), DataBase.getDbPass());
-            PreparedStatement stAllDomainIds = cn.prepareStatement("select id from domains limit 40000");
+            PreparedStatement stAllDomainIds = cn.prepareStatement("select id from domains");
             ResultSet rsDomainIds = stAllDomainIds.executeQuery();
             while (rsDomainIds.next()) {
                 domainIdQ.add(rsDomainIds.getLong(1));

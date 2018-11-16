@@ -34,7 +34,7 @@ public class LogFileWriter implements Runnable {
                 String logLine = logFileQ.poll();
                 if (logLine != null) {
                     out.write(logLine + "\n");
-                    //System.out.println("lfw: " + logLine);
+                    // System.out.println("lfw: " + logLine);
                 } else {
                     Thread.sleep(700);
                 }

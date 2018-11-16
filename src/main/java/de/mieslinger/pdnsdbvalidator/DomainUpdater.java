@@ -8,15 +8,12 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
 import org.xbill.DNS.Lookup;
 import org.xbill.DNS.Name;
 import org.xbill.DNS.Record;
+import org.xbill.DNS.SOARecord;
 import org.xbill.DNS.SimpleResolver;
 import org.xbill.DNS.Type;
 
@@ -29,9 +26,9 @@ public class DomainUpdater {
     private ConcurrentLinkedQueue<Long> shortDomainQ;
     private ConcurrentLinkedQueue<String> logFileQ;
     private ConcurrentLinkedQueue<String> criticalLogFileQ;
-    private ThreadPoolExecutor threadPool = null;
     final LinkedBlockingQueue<Runnable> workQueue = new LinkedBlockingQueue<>();
     private volatile boolean keepOnRunning = true;
+    private Thread[] tList = null;
 
     private DomainUpdater() {
     }
@@ -44,10 +41,17 @@ public class DomainUpdater {
         this.shortDomainQ = shortDomainQ;
         this.logFileQ = logFileQ;
         this.criticalLogFileQ = criticalLogFileQ;
+        this.tList = new Thread[fixedPoolSize];
 
-        threadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(fixedPoolSize);
-        for (int i = 1; i < fixedPoolSize; i++) {
-            threadPool.execute(new ShortDomainUpdaterWorker(shortDomainQ, logFileQ, criticalLogFileQ));
+        for (int i = 0; i < fixedPoolSize; i++) {
+            try {
+                ShortDomainUpdaterWorker sduw = new ShortDomainUpdaterWorker(shortDomainQ, logFileQ, criticalLogFileQ);
+                tList[i] = new Thread(sduw);
+                tList[i].setName("worker-" + i);
+                tList[i].start();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -66,8 +70,6 @@ public class DomainUpdater {
         private PreparedStatement getSOARecord = null;
         private PreparedStatement getNameFromDomains = null;
         private PreparedStatement getRecords = null;
-        private PreparedStatement insRecordTest = null;
-        private PreparedStatement delRecordTest = null;
         private PreparedStatement insBroken = null;
 
         // jabber fix
@@ -102,10 +104,6 @@ public class DomainUpdater {
                     + "from records r "
                     + "where r.domain_id = ? ");
 
-            insRecordTest = cn.prepareStatement("insert into records(domain_id, name, ttl, type, content) "
-                    + "values (?, ?, 60, ?, ?)", Statement.RETURN_GENERATED_KEYS);
-            delRecordTest = cn.prepareStatement("delete from records where id = ?");
-
             delJabberRecords = cn.prepareStatement("delete from records where domain_id=? and type = 'SRV' and content = ?");
             insBroken = cn.prepareStatement("insert into domainmetadata(domain_id, kind, content) values (?, ?, ?)");
 
@@ -115,149 +113,141 @@ public class DomainUpdater {
         }
 
         public void run() {
-            while (keepOnRunning) {
-                ResultSet rs = null;
-                String zoneName = null;
-                Long domainId = domainIdQ.poll();
-                if (domainId != null) {
-                    updatedDomains++;
-                    try {
-                        getNameFromDomains.setLong(1, domainId);
-                        String domainName = "";
-                        ResultSet rsD = getNameFromDomains.executeQuery();
-                        if (rsD.first()) {
-                            domainName = rsD.getString(1);
-                        }
-                        rsD.close();
-                        logFileQ.add("checking domainId: " + domainId + " domainName: " + domainName);
-
-                        // cleanup old stuff anyway
-                        // jabber
-                        // das das jemals funktioniert hat. Da hätte NIE ein '.' am Ende sein dürfen.
-                        delJabberRecords.setLong(1, domainId);
-                        delJabberRecords.setString(2, "0 5269 gmx.net.");
-                        int i = delJabberRecords.executeUpdate();
-
-                        delJabberRecords.setLong(1, domainId);
-                        delJabberRecords.setString(2, "0 5222 gmx.net.");
-                        int j = delJabberRecords.executeUpdate();
-
-                        logFileQ.add("Jabber clean complete for " + domainName);
-
-                        // Check SOA
-                        getSOARecord.setLong(1, domainId);
-                        rs = getSOARecord.executeQuery();
-                        if (rs.next()) {
-                            int numSOAs = 0;
-                            do {
-                                zoneName = rs.getString(1);
-                                if (!zoneName.equals(domainName)) {
-                                    setDomainIdBroken(insBroken, domainId, "SOA name does not match domainstable name");
-                                    criticalLogFileQ.add("domain_id: " + domainId + " " + zoneName + " SOA broken");
-                                }
-
-                                String soa = rs.getString(2);
-                                String[] soaFields = soa.split(" ");
-
-                                if (soaFields.length != 7) {
-                                    setDomainIdBroken(insBroken, domainId, "SOA invalid");
-                                    criticalLogFileQ.add("domain_id: " + domainId + " " + zoneName + " SOA broken");
-                                }
-                                numSOAs++;
-                            } while (rs.next());
-                            if (numSOAs > 1) {
-                                setDomainIdBroken(insBroken, domainId, "more than one SOA");
-                                criticalLogFileQ.add("domain_id: " + domainId + " " + zoneName + " SOA broken");
-                            }
-                        } else {
-                            setDomainIdBroken(insBroken, domainId, "no SOA");
-                            criticalLogFileQ.add("domain_id: " + domainId + " " + zoneName + " SOA broken");
-                            break;
-                        }
-
+            try {
+                while (keepOnRunning) {
+                    ResultSet rs = null;
+                    String zoneName = null;
+                    Long domainId = domainIdQ.poll();
+                    if (domainId != null) {
+                        updatedDomains++;
                         try {
-                            rs.close();
-                        } catch (SQLException e) {
-                        }
-
-                        logFileQ.add("SOA checking complete for " + domainName);
-
-                        // Check whether Domain is delegated
-                        // insert record
-                        insRecordTest.setLong(1, domainId);
-                        insRecordTest.setString(2, "pdns-db-validator-check." + zoneName);
-                        insRecordTest.setString(3, "TXT");
-                        insRecordTest.setString(4, "PdnsDBValidator test record");
-                        insRecordTest.executeUpdate();
-                        cn.commit();
-                        ResultSet rsId = insRecordTest.getGeneratedKeys();
-                        Long recordId = null;
-                        if (rsId.first()) {
-                            recordId = rsId.getLong(1);
-                            rsId.close();
-                        } else {
-                            criticalLogFileQ.add("domain_id: " + domainId + " " + zoneName + "rsId is NULL");
-                        }
-                        logFileQ.add("domain_id: " + domainId + " " + zoneName + " recordId for TXT testrecord: " + recordId);
-
-                        // wait 500ms for propagation of added record
-                        Thread.sleep(1000);
-
-                        // query from root
-                        // will always fail in test
-                        Lookup l = new Lookup(new Name("pdns-db-validator-check." + zoneName + "."), Type.TXT);
-                        l.setResolver(res);
-                        Record[] delegationCheckRecords = l.run();
-                        int rc = l.getResult();
-
-                        // delete record here to use a simple break if lookup
-                        // was not successful
-                        if (recordId != null) {
-                            delRecordTest.setLong(1, recordId);
-                            delRecordTest.executeUpdate();
-                            logFileQ.add("deleted testrecord " + recordId + " for " + domainName);
-                        }
-
-                        if (rc != Lookup.SUCCESSFUL) {
-                            criticalLogFileQ.add("domain_id: " + domainId + " " + zoneName + " NOT delegated to us");
-
-                        } else {
-                            // should check whats in
-                            // delegationCheckRecords
-                            criticalLogFileQ.add("domain_id: " + domainId + " " + zoneName + " IS delegated to us");
-
-                            getRecords.setLong(1, domainId);
-                            ResultSet rsZ = getRecords.executeQuery();
-
-                            while (rsZ.next()) {
-                                ResourceRecord r = new ResourceRecord(rsZ.getString(2), rsZ.getLong(3), rsZ.getString(4), rsZ.getInt(5), rsZ.getString(6));
-                                if (r.getRc() != 0) {
-                                    setDomainIdBroken(insBroken, domainId, r.getMessage());
-                                    break;
-                                }
+                            getNameFromDomains.setLong(1, domainId);
+                            String domainName = "";
+                            ResultSet rsD = getNameFromDomains.executeQuery();
+                            if (rsD.first()) {
+                                domainName = rsD.getString(1);
                             }
-                            rsZ.close();
+                            rsD.close();
+                            logFileQ.add("checking domainId: " + domainId + " domainName: " + domainName);
+
+                            // cleanup old stuff anyway
+                            // jabber
+                            // das das jemals funktioniert hat. Da hätte NIE ein '.' am Ende sein dürfen.
+                            /*
+                            delJabberRecords.setLong(1, domainId);
+                            delJabberRecords.setString(2, "0 5269 gmx.net.");
+                            int i = delJabberRecords.executeUpdate();
+
+                            delJabberRecords.setLong(1, domainId);
+                            delJabberRecords.setString(2, "0 5222 gmx.net.");
+                            int j = delJabberRecords.executeUpdate();
+
+                            logFileQ.add("Jabber clean complete for " + domainName);
+                             */
+                            // Check SOA
+                            String[] soaStringFields = null;
+                            getSOARecord.setLong(1, domainId);
+                            rs = getSOARecord.executeQuery();
+                            if (rs.next()) {
+                                int numSOAs = 0;
+                                do {
+                                    zoneName = rs.getString(1);
+                                    if (!zoneName.equals(domainName)) {
+                                        setDomainIdBroken(insBroken, domainId, "SOA name does not match domainstable name");
+                                        criticalLogFileQ.add("domain_id: " + domainId + " " + zoneName + " SOA name does not match domainstable name");
+                                        break;
+                                    }
+
+                                    String soaString = rs.getString(2);
+                                    soaStringFields = soaString.split(" ");
+
+                                    if (soaStringFields.length != 7) {
+                                        setDomainIdBroken(insBroken, domainId, "SOA invalid");
+                                        criticalLogFileQ.add("domain_id: " + domainId + " " + zoneName + " SOA invalid");
+                                        break;
+                                    }
+                                    numSOAs++;
+                                } while (rs.next());
+                                if (numSOAs > 1) {
+                                    setDomainIdBroken(insBroken, domainId, "more than one SOA");
+                                    criticalLogFileQ.add("domain_id: " + domainId + " " + zoneName + " more than one SOA");
+                                }
+                            } else {
+                                setDomainIdBroken(insBroken, domainId, "no SOA");
+                                criticalLogFileQ.add("domain_id: " + domainId + " " + zoneName + " no SOA");
+                            }
+                            rs.close();
+
+                            logFileQ.add("SOA checking complete for " + domainName);
+
+                            // Check whether Domain is delegated
+                            // assume that if zone is delegated elsewhere it will not have
+                            // the SOA exactly like in our DB
+                            Lookup l = new Lookup(new Name(zoneName + "."), Type.SOA);
+                            l.setResolver(res);
+                            Record[] delegationCheckRecords = l.run();
+                            int rc = l.getResult();
+                            Thread.sleep(50);
+                            // delete record here to use a simple break if lokup
+                            // was not successful
+                            if (rc == Lookup.SUCCESSFUL) {
+                                // check if returned SOA matches database SOA
+                                // should check whats in
+                                // delegationCheckRecords
+                                for (Record rec : delegationCheckRecords) {
+                                    if (rec.getType() == Type.SOA) {
+                                        SOARecord soaRec = (SOARecord) rec;
+                                        // compare primary, contact and serial
+                                        if (soaStringFields[0].equals(soaRec.getHost().toString(true))
+                                                && soaStringFields[1].equals(soaRec.getAdmin().toString(true))
+                                                && (Long.parseLong(soaStringFields[2]) == soaRec.getSerial())) {
+                                            criticalLogFileQ.add("domain_id: " + domainId + " " + zoneName + " IS delegated to us");
+
+                                            getRecords.setLong(1, domainId);
+                                            ResultSet rsZ = getRecords.executeQuery();
+
+                                            while (rsZ.next()) {
+                                                ResourceRecord r = new ResourceRecord(rsZ.getString(2), rsZ.getLong(3), rsZ.getString(4), rsZ.getInt(5), rsZ.getString(6));
+                                                if (r.getRc() != 0) {
+                                                    setDomainIdBroken(insBroken, domainId, r.getMessage());
+                                                    break;
+                                                }
+                                            }
+                                            rsZ.close();
+                                        } else {
+                                            criticalLogFileQ.add("domain_id: " + domainId + " " + zoneName + " IS delegated but not to us");
+                                        }
+                                    }
+                                }
+                            } else { // rc != Lookup.SUCCESSFUL
+                                criticalLogFileQ.add("domain_id: " + domainId + " " + zoneName + " NOT delegated at all");
+                            }
+
+                            if (updatedDomains > batchSize) {
+                                cn.commit();
+                                updatedDomains = 0;
+                                logFileQ.add("domain_id: " + domainId + " " + zoneName + " commit send");
+                                Thread.sleep(100);
+                            }
+                        } catch (Exception e) {
+                            criticalLogFileQ.add("domain_id: " + domainId + " " + zoneName + " exception: " + e.getMessage());
+                            e.printStackTrace();
                         }
-                        // Do the commit
-                        if (updatedDomains > batchSize) {
+                    } else {
+                        try {
                             cn.commit();
                             updatedDomains = 0;
-                            logFileQ.add("domain_id: " + domainId + " " + zoneName + " commit send");
+                            Thread.sleep(500);
+                        } catch (Exception e) {
+                            criticalLogFileQ.add("domain_id: " + domainId + " commit exception: " + e.getMessage());
+                            System.out.println("domain_id: " + domainId + " commit exception: " + e.getMessage());
+                            e.printStackTrace();
                         }
-                    } catch (Exception e) {
-                        criticalLogFileQ.add("domain_id: " + domainId + " " + zoneName + " exception: " + e.getMessage());
-                        e.printStackTrace();
-                    }
-                } else {
-                    try {
-                        cn.commit();
-                        updatedDomains = 0;
-                        Thread.sleep(500);
-                    } catch (Exception e) {
-                        criticalLogFileQ.add("domain_id: " + domainId + " commit exception: " + e.getMessage());
-                        System.out.println("domain_id: " + domainId + " commit exception: " + e.getMessage());
                     }
                 }
+            } catch (Exception e) {
+                criticalLogFileQ.add("Strange exception: " + e.getMessage());
+                e.printStackTrace();
             }
         }
     }
