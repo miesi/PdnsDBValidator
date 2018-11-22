@@ -73,8 +73,7 @@ public class DomainUpdater {
         private PreparedStatement insBroken = null;
 
         // jabber fix
-        private PreparedStatement delJabberRecords = null;
-
+        //private PreparedStatement delJabberRecords = null;
         private SimpleResolver res = null;
 
         private int updatedDomains = 0;
@@ -104,7 +103,7 @@ public class DomainUpdater {
                     + "from records r "
                     + "where r.domain_id = ? ");
 
-            delJabberRecords = cn.prepareStatement("delete from records where domain_id=? and type = 'SRV' and content = ?");
+            //delJabberRecords = cn.prepareStatement("delete from records where domain_id=? and type = 'SRV' and content = ?");
             insBroken = cn.prepareStatement("insert into domainmetadata(domain_id, kind, content) values (?, ?, ?)");
 
             res = new SimpleResolver();
@@ -186,11 +185,9 @@ public class DomainUpdater {
                             Lookup l = new Lookup(new Name(zoneName + "."), Type.SOA);
                             l.setResolver(res);
                             Record[] delegationCheckRecords = l.run();
-                            int rc = l.getResult();
-                            Thread.sleep(50);
-                            // delete record here to use a simple break if lokup
-                            // was not successful
-                            if (rc == Lookup.SUCCESSFUL) {
+                            int rcLookup = l.getResult();
+
+                            if (rcLookup == Lookup.SUCCESSFUL) {
                                 // check if returned SOA matches database SOA
                                 // should check whats in
                                 // delegationCheckRecords
@@ -207,7 +204,7 @@ public class DomainUpdater {
                                             ResultSet rsZ = getRecords.executeQuery();
 
                                             while (rsZ.next()) {
-                                                ResourceRecord r = new ResourceRecord(rsZ.getString(2), rsZ.getLong(3), rsZ.getString(4), rsZ.getInt(5), rsZ.getString(6));
+                                                ResourceRecord r = new ResourceRecord(rsZ.getString(2), rsZ.getLong(3), rsZ.getString(4), rsZ.getInt(5), rsZ.getString(6), res);
                                                 if (r.getRc() != 0) {
                                                     setDomainIdBroken(insBroken, domainId, r.getMessage());
                                                     break;
@@ -219,7 +216,7 @@ public class DomainUpdater {
                                         }
                                     }
                                 }
-                            } else { // rc != Lookup.SUCCESSFUL
+                            } else { // rcLookup != Lookup.SUCCESSFUL
                                 criticalLogFileQ.add("domain_id: " + domainId + " " + zoneName + " NOT delegated at all");
                             }
 
@@ -237,7 +234,6 @@ public class DomainUpdater {
                         try {
                             cn.commit();
                             updatedDomains = 0;
-                            Thread.sleep(500);
                         } catch (Exception e) {
                             criticalLogFileQ.add("domain_id: " + domainId + " commit exception: " + e.getMessage());
                             System.out.println("domain_id: " + domainId + " commit exception: " + e.getMessage());
@@ -280,8 +276,10 @@ public class DomainUpdater {
             insBroken.setString(2, "broken");
             insBroken.setString(3, reason);
             insBroken.execute();
+            System.out.println("domainId: " + domainId + " marked as broken " + reason);
         } catch (Exception e) {
-
+            System.out.println("domainId: " + domainId + " should be marked as broken " + reason);
+            e.printStackTrace();
         }
     }
 
@@ -292,7 +290,8 @@ public class DomainUpdater {
             insBroken.setString(3, "some Reason");
             insBroken.execute();
         } catch (Exception e) {
-
+            System.out.println("domainId: " + domainId + " should be marked as broken");
+            e.printStackTrace();
         }
     }
 

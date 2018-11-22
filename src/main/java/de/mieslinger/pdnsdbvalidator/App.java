@@ -29,7 +29,7 @@ public class App {
             ctlfw.setName("criticalLogFileQ-writer");
             ctlfw.start();
 
-            DomainUpdater domainUpdater = new DomainUpdater(domainIdQ, logFileQ, criticalLogFileQ, 25);
+            DomainUpdater domainUpdater = new DomainUpdater(domainIdQ, logFileQ, criticalLogFileQ, 20);
 
             // getDomainIds direkt hier
             Class.forName(DataBase.getJdbcClass());

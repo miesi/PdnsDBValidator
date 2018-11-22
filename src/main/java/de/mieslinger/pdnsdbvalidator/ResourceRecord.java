@@ -13,15 +13,18 @@ import org.xbill.DNS.ARecord;
 import org.xbill.DNS.CAARecord;
 import org.xbill.DNS.CNAMERecord;
 import org.xbill.DNS.DClass;
+import org.xbill.DNS.Lookup;
 import org.xbill.DNS.MXRecord;
 import org.xbill.DNS.NSRecord;
 import org.xbill.DNS.Name;
 import org.xbill.DNS.PTRRecord;
 import org.xbill.DNS.Record;
+import org.xbill.DNS.Resolver;
 import org.xbill.DNS.SOARecord;
 import org.xbill.DNS.SPFRecord;
 import org.xbill.DNS.SRVRecord;
 import org.xbill.DNS.TXTRecord;
+import org.xbill.DNS.Type;
 
 /**
  *
@@ -39,16 +42,18 @@ public class ResourceRecord {
     private String content = null;
     private boolean isSOA = false;
     private boolean isNS = false;
+    private Resolver resolver = null;
 
     private ResourceRecord() {
     }
 
-    public ResourceRecord(String name, Long ttl, String type, Integer prio, String content) {
-        this.name = name;
-        this.ttl = ttl;
-        this.type = type;
-        this.prio = prio;
-        this.content = content;
+    public ResourceRecord(String nam, Long tt, String typ, Integer priority, String conten, Resolver res) {
+        this.name = nam;
+        this.ttl = tt;
+        this.type = typ;
+        this.prio = priority;
+        this.content = conten;
+        this.resolver = res;
 
         try {
             switch (type) {
@@ -173,46 +178,57 @@ public class ResourceRecord {
                     break;
                 case "TXT":
                     Name txtn = new Name(name + ".");
+                    Lookup l = new Lookup(txtn, Type.TXT);
+                    l.setResolver(res);
+                    Record[] txtCheckRecords = l.run();
+                    int rcLookup = l.getResult();
+                    if (rcLookup == Lookup.SUCCESSFUL) {
 
-                    if (content.contains("\"")) {
-                        List<String> txtStrings = new LinkedList<>();
-
-                        Matcher m = Pattern.compile("\"([^\"]*)\"|(\\S+)").matcher(content);
-                        while (m.find()) {
-                            if (m.group(1) != null) {
-                                txtStrings.add(m.group(1));
-                            } else {
-                                txtStrings.add(m.group(2));
-                            }
-                            r = new TXTRecord(txtn, DClass.IN, ttl, txtStrings);
-                        }
-                    } else {
-                        if (content.length() > 255) {
+                        if (content.contains("\"")) {
                             List<String> txtStrings = new LinkedList<>();
-                            int len = content.length();
-                            int start = 0;
-                            while (len > 0) {
 
-                                String part = null;
-                                if (len > 255) {
-                                    part = content.substring(start, start + 255);
+                            Matcher m = Pattern.compile("\"([^\"]*)\"|(\\S+)").matcher(content);
+                            while (m.find()) {
+                                if (m.group(1) != null) {
+                                    txtStrings.add(m.group(1));
                                 } else {
-                                    part = content.substring(start, start + len);
+                                    txtStrings.add(m.group(2));
                                 }
-
-                                txtStrings.add(part);
-                                len = len - 255;
-                                start = start + 255;
+                                r = new TXTRecord(txtn, DClass.IN, ttl, txtStrings);
                             }
-                            r = new TXTRecord(txtn, DClass.IN, ttl, txtStrings);
                         } else {
-                            r = new TXTRecord(txtn, DClass.IN, ttl, content);
-                        }
-                    }
+                            if (content.length() > 255) {
+                                List<String> txtStrings = new LinkedList<>();
+                                int len = content.length();
+                                int start = 0;
+                                while (len > 0) {
 
-                    message = "OK";
-                    rc = 0;
-                    break;
+                                    String part = null;
+                                    if (len > 255) {
+                                        part = content.substring(start, start + 255);
+                                    } else {
+                                        part = content.substring(start, start + len);
+                                    }
+
+                                    txtStrings.add(part);
+                                    len = len - 255;
+                                    start = start + 255;
+                                }
+                                r = new TXTRecord(txtn, DClass.IN, ttl, txtStrings);
+                            } else {
+                                r = new TXTRecord(txtn, DClass.IN, ttl, content);
+                            }
+                        }
+
+                        message = "OK";
+                        rc = 0;
+                        break;
+                    } else {
+                        System.out.println("TXT name: " + name + " content: " + content + " failed");
+                        message = "TXT lookup failed";
+                        rc = 1;
+                        break;
+                    }
                 case "CAA":
                     Name caan = new Name(name + ".");
                     String[] caaFields = content.split(" ");
